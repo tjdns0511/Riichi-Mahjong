@@ -2,6 +2,8 @@
 
 HTML5 · CSS3 · ES modules로 작성한 4인 리치마작과 학습 도구입니다. 런타임 의존성, 번들러, 서버 API, 계정 등록이 없습니다.
 
+**[브라우저에서 바로 플레이하기](https://tjdns0511.github.io/Riichi-Mahjong/)** · [MIT License](LICENSE)
+
 ## 실행
 
 GitHub Pages 주소로 열면 바로 플레이할 수 있습니다. PC Chrome/Firefox/Edge와 Android Chrome/삼성 인터넷을 대상으로 반응형 화면과 터치 조작을 구현했습니다. 실제 기기·브라우저별 추가 검증은 필요합니다.
