@@ -1,0 +1,49 @@
+name: Test and deploy GitHub Pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify rule engine
+        run: node --test tests/*.test.js
+      - name: Install browser test tools (test job only)
+        run: npm install --no-save playwright@1.62.1
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Verify desktop and mobile flows
+        run: node tests/browser-smoke.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-screenshots
+          path: test-results/
+          retention-days: 7
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: '.'
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
