@@ -84,3 +84,8 @@ node tests/browser-smoke.mjs
 [FluffyStuff/riichi-mahjong-tiles](https://github.com/FluffyStuff/riichi-mahjong-tiles)의 Regular SVG를 원격 URL에서 읽습니다. 해당 패 그림은 [CC0 1.0](https://github.com/FluffyStuff/riichi-mahjong-tiles/blob/master/LICENSE.md)입니다. 이미지 로딩 중이나 오류 시 유니코드 마작 문자와 CSS 패 테두리를 사용합니다. 외부 JS·CSS 라이브러리는 로드하지 않습니다.
 
 룰 참고: [천봉 매뉴얼](https://tenhou.net/man/). 본 프로젝트의 옵션 차이를 문서에 명시했으며 천봉 자체의 룰셋·패보 포맷을 복제하는 앱은 아닙니다.
+
+## 라이선스
+
+프로젝트 소스 코드와 문서는 [MIT License](LICENSE)로 배포합니다. Copyright (c) 2026 tjdns0511.
+원격으로 사용하는 FluffyStuff의 타일 SVG에는 원작자의 CC0 1.0 라이선스가 적용됩니다.
