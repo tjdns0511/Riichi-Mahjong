@@ -9,6 +9,7 @@ import { resolve, extname } from 'node:path';
 import { chromium } from 'playwright';
 import { runLayoutChecks } from './browser-layout.mjs';
 import { runHandGeometryChecks } from './browser-hand-geometry.mjs';
+import { checkEfficiencyExport } from './browser-efficiency-export.mjs';
 
 const root = resolve(import.meta.dirname, '..'),
   out = resolve(root, 'test-results');
@@ -47,6 +48,7 @@ const sizes = [
   { name: 'galaxy-portrait', width: 384, height: 854 },
   { name: 'galaxy-landscape', width: 854, height: 384 },
   { name: 'small-phone', width: 360, height: 800 },
+  { name: 'narrow-phone', width: 320, height: 568 },
 ];
 try {
   for (const size of sizes) {
@@ -101,8 +103,13 @@ try {
         `${size.name} ${tab} overflow`
       );
       if (tab === 'efficiency') {
+        // Exporting before the first choice is safe and shows an empty history.
+        await page.locator('[data-action="eff-export"]').click();
+        assert.match(await page.locator('#eff-report').inputValue(), /총 타패 횟수: 0회/);
         await page.locator('[data-action="eff-answer"]').first().click();
+        assert.equal(await page.locator('#eff-report').count(), 0, 'discard must clear stale preview');
         await page.locator('.feedback').waitFor();
+        await checkEfficiencyExport(page, out, size.name);
         await page.getByRole('button', { name: '2회 쯔모까지 분석', exact: true }).click();
         await page
           .getByRole('button', { name: '2회 쯔모 분석 완료', exact: true })
@@ -125,10 +132,13 @@ try {
           await page.getByRole('heading', { name: '텐파이 달성!' }).waitFor();
           assert.equal(await page.locator('.efficiency-result .hand .tile').count(), 13);
           assert.equal(await page.locator('[data-action="eff-next"]').count(), 0);
+          await checkEfficiencyExport(page, out, size.name + '-completed', true);
+          await page.locator('[data-action="eff-export"]').click();
           await page.getByRole('button', { name: '연습 메뉴로', exact: true }).click();
           await page.getByRole('heading', { name: '연습 메뉴' }).waitFor();
           await page.getByRole('button', { name: '새 패효율 연습', exact: true }).click();
           assert.equal(await page.locator('[data-action="eff-answer"]').count(), 14);
+          assert.equal(await page.locator('#eff-report').count(), 0, 'new exercise retained old report');
         }
       } else if (tab === 'defense') {
         await page.locator('[data-action="def-answer"]').first().click();

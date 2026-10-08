@@ -1182,6 +1182,13 @@ body.no-labels .tile-label {
   padding-top: 14px;
   padding-bottom: 0;
 }
+.efficiency-export textarea {
+  min-height: 20rem;
+  font-family: ui-monospace, monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
 .feedback {
   display: flex;
   flex-direction: column;

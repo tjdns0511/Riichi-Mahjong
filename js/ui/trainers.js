@@ -36,7 +36,7 @@ function efficiencyHand(hand, drawn = null, options = {}) {
  })).join('')}</div>`;
 }
 /** Final 13 tiles and historical 14-tile decisions are intentionally separate. */
-export function efficiencyView(e) {
+export function efficiencyView(e, reportText = '') {
  const rows=e.rows??rankDiscards(e.hand,0,counts([...e.hand,...e.river]));
  const record=e.history.at(-1),ratio=e.maxPoints?Math.round(e.points/e.maxPoints*100):0;
  const progress=`<div class="practice-stat"><b>${e.maxPoints?ratio:'—'}<small>%</small></b><span>${e.points} / ${e.maxPoints}점</span></div>`;
@@ -44,16 +44,26 @@ export function efficiencyView(e) {
  if(e.ended)return `<div class="practice-top"><div><span class="eyebrow">TENPAI · COMPLETE</span><h1>텐파이 달성!</h1><p class="muted">${e.history.length}회 타패 · 연습이 종료되었습니다.</p></div>${progress}</div>
  <section class="panel efficiency-result"><h2>최종 손패</h2>${efficiencyHand(e.hand)}
  <h3>최종 대기 · ${e.final.waits.length}종 / 미확인 ${e.final.total}장</h3><div class="wait-details">${e.final.waits.map(w=>`<div class="wait-card ${w.left?'':'exhausted'}">${tile(w.t*4+1)}<b>${label(w.t)} · ${w.left}장</b><span>${w.shapes.join('·')}</span></div>`).join('')}</div>
- ${scoring}<p>누적 ${e.points}점 / 최대 ${e.maxPoints}점 · 달성 비율 ${ratio}%</p><div class="action-row">${button('다시 연습하기','eff-new','','primary')}${button('연습 메뉴로','eff-menu')}</div></section>
+ ${scoring}<p>누적 ${e.points}점 / 최대 ${e.maxPoints}점 · 달성 비율 ${ratio}%</p><div class="action-row">${button('다시 연습하기','eff-new','','primary')}${button('기록 내보내기','eff-export')}${button('연습 메뉴로','eff-menu')}</div></section>${efficiencyExportView(reportText)}
  <section class="panel"><h2>개선할 수 있었던 선택</h2>${e.history.some(r=>!r.optimal.includes(r.selected))?e.history.filter(r=>!r.optimal.includes(r.selected)).map(r=>`<p>${r.turn}순 ${label(r.selected)}: ${esc(r.reason)}</p>`).join(''):'<p>모든 타패가 해당 시점의 최적 선택입니다.</p>'}</section>${efficiencyHistory(e)}`;
  const chosen=record&&e.choice!==null?record.chosen:null;
  return `<div class="practice-top"><div><span class="eyebrow">TILE EFFICIENCY</span><h1>어떤 패를 버릴까요?</h1><p class="muted">타패 후 텐파이가 되면 즉시 결과를 확인합니다.</p></div>${progress}</div>
  <section class="panel practice-hand"><div class="panel-heading"><span>${e.turn}순째 ${pill(shantenText(shanten(counts(e.hand))))}</span>${button('새 손패','eff-new')}</div>
  ${efficiencyHand(e.hand,e.drawn,{action:'eff-answer',disabled:e.choice!==null})}
- <div class="hand-footer"><span class="micro">패를 누르면 타패하고 정답과 비교합니다.</span>${button(e.show?'분석 숨기기':'분석 보기','eff-reveal')}</div>
+ <div class="hand-footer"><span class="micro">패를 누르면 타패하고 정답과 비교합니다.</span><div class="action-row">${button(e.show?'분석 숨기기':'분석 보기','eff-reveal')}${button('기록 내보내기','eff-export')}</div></div>
  ${chosen?`<div class="feedback ${record.optimal.includes(e.choice)?'good':''}"><b>${esc(record.reason)}</b><span>${label(chosen.t)} → ${shantenText(chosen.shanten)} · 유효패 ${chosen.total}장 · ${record.earned}/${record.maximum}점</span>${e.wall.length?button('다음 쯔모','eff-next','','primary'):'<span>연습 패산이 소진되었습니다. 새 손패를 시작하세요.</span>'}</div>`:''}
- ${e.river.length?`<div class="training-river" data-public><span>내 버림패</span>${tiles(e.river,{small:true})}</div>`:''}</section>
+ ${e.river.length?`<div class="training-river" data-public><span>내 버림패</span>${tiles(e.river,{small:true})}</div>`:''}</section>${efficiencyExportView(reportText)}
  ${e.show?`<section class="panel"><div class="panel-heading"><h2>타패별 비교</h2>${button(e.busy?'계산 중…':e.twoStep?'2회 쯔모 분석 완료':'2회 쯔모까지 분석','eff-deep',e.busy?'disabled':'')}</div>${scoring}${e.twoStep?'<p class="micro">당시 미확인 패에서 상대 행동을 제외한 비복원 추출을 가정합니다. 두 번 이내 2샨텐 개선(텐파이는 화료) 확률이며 실제 패산 확률이 아닙니다.</p>':''}${analysisTable(rows,e.choice)}</section>`:''}`;
+}
+/** A normal-flow, read-only preview stays usable when clipboard permission is
+ * unavailable. Escaping also keeps any report text out of the HTML parser. */
+function efficiencyExportView(text) {
+  if (!text) return '';
+  return `<section class="panel efficiency-export" aria-labelledby="eff-report-heading"><h2 id="eff-report-heading">패효율 기록 내보내기</h2>
+  <p class="muted">현재까지의 기록을 읽기 쉬운 보고서로 정리했습니다. 복사하거나 파일로 저장해 외부에서 분석할 수 있습니다.</p>
+  <label class="field"><span>패효율 분석 보고서</span><textarea id="eff-report" readonly rows="14" spellcheck="false">${esc(text)}</textarea></label>
+  <div class="action-row">${button('보고서 복사','eff-export-copy','','primary')}${button('텍스트 저장 (.txt)','eff-export-txt')}${button('Markdown 저장 (.md)','eff-export-md')}${button('닫기','eff-export-close')}</div>
+  <p class="micro">두 파일은 같은 내용의 UTF-8 문서입니다. 타패별 손패·유효패·최적 후보·점수를 포함합니다.</p></section>`;
 }
 /** Expandable comparisons retain all co-optimal choices and public counts. */
 function efficiencyHistory(e) {

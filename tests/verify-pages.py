@@ -9,7 +9,7 @@ from urllib.request import Request, urlopen
 base = os.environ["PAGES_URL"].rstrip("/") + "/"
 paths = ["index.html", "styles.css", "sw.js", "js/app.js", "js/core/ai.js",
          "js/core/hand-analysis.js", "js/core/efficiency.js", "js/ui/furiten.js",
-         "js/ui/trainers.js"]
+         "js/ui/trainers.js", "js/core/efficiency-report.js"]
 for attempt in range(12):
     failures = []
     for path in paths:
