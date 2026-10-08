@@ -1,6 +1,6 @@
 /* Offline shell, scoped to this repository path. Version bumps evict obsolete
  * module graphs together so cached engine and UI versions never mix. */
-const CACHE = 'riichi-mahjong-v1.1.3';
+const CACHE = 'riichi-mahjong-v1.1.4';
 const FILES = [
   './',
   './index.html',

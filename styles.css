@@ -11,8 +11,7 @@
   --green-deep: #213f36;
   --gold: #e8c480;
   --red: #edab9e;
-  --tile-w: 42px;
-  --tile-h: 58px;
+  --tile-ratio: 1.38;
   font-family: Inter, 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif;
   font-synthesis: none;
   font-size: 16px;
@@ -603,8 +602,7 @@ textarea {
   margin-top: 7px;
 }
 .concealed .tile.back {
-  width: 12px;
-  height: 20px;
+  --tile-w: 12px;
   min-width: 0;
   border-radius: 2px;
   border-width: 1px;
@@ -623,11 +621,9 @@ textarea {
   gap: 1px;
 }
 .meld .tile,
-.meld .tile.small {
-  width: 17px;
-  height: 24px;
+.meld .tile.small,
+.meld .tile.back {
   --tile-w: 17px;
-  --tile-h: 24px;
 }
 .meld .tile-label {
   display: none;
@@ -655,10 +651,7 @@ textarea {
 }
 .river .tile,
 .river .tile.small {
-  width: var(--river-w);
-  height: calc(var(--river-w) * 1.36);
   --tile-w: var(--river-w);
-  --tile-h: calc(var(--river-w) * 1.36);
   box-shadow: 0 2px 0 #aba389;
 }
 .river .tile-fallback {
@@ -727,10 +720,7 @@ textarea {
 }
 .dora-rack .tile,
 .dora-rack .tile.small {
-  width: 20px;
-  height: 28px;
   --tile-w: 20px;
-  --tile-h: 28px;
   box-shadow: 0 2px 0 #aaa082;
 }
 .dora-rack .tile-fallback {
@@ -747,17 +737,19 @@ textarea {
   letter-spacing: 0.24em;
   color: #9ab59e80;
 }
-/* Unicode is the immediate and offline fallback underneath the CC0 image. */
+/* One sizing contract for every face, back, hand, river and analysis tile.
+ * Variants set ONLY --tile-w; derive height here, on the tile itself, so a
+ * responsive width cannot inherit a stale height computed on an ancestor.
+ * Both dimensions are border-box sizes. Unicode is the offline fallback. */
 .tile {
   --tile-w: 42px;
-  --tile-h: 58px;
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   width: var(--tile-w);
-  height: var(--tile-h);
+  height: calc(var(--tile-w) * var(--tile-ratio));
   padding: 0;
   background: #f3f0df;
   border: 1px solid #e1d8be;
@@ -782,7 +774,7 @@ textarea {
   width: 100%;
   height: 100%;
   inset: 0;
-  object-fit: fill;
+  object-fit: contain;
   opacity: 0;
   pointer-events: none;
 }
@@ -822,7 +814,6 @@ body.no-labels .tile-label {
 }
 .tile.small {
   --tile-w: 28px;
-  --tile-h: 39px;
   box-shadow: 0 2px 0 #b6ac88;
 }
 .tile.small .tile-fallback {
@@ -835,7 +826,6 @@ body.no-labels .tile-label {
   background: linear-gradient(145deg, #e5bd5a, #b69039);
   border-color: #c3a259;
   --tile-w: 20px;
-  --tile-h: 30px;
   box-shadow: 0 3px 0 #b38e3a;
 }
 .tile.selected {
@@ -910,12 +900,10 @@ body.no-labels .tile-label {
 }
 .tiles-hand {
   --hand-tile-w: clamp(20px, 3.05vw, 43px);
-  --hand-tile-h: calc(var(--hand-tile-w) * 1.38);
   gap: 4px;
 }
 .tiles-hand .tile {
   --tile-w: var(--hand-tile-w);
-  --tile-h: var(--hand-tile-h);
 }
 .tiles-hand .tile-fallback {
   font-size: calc(var(--hand-tile-w) * 1.12);
@@ -949,7 +937,6 @@ body.no-labels .tile-label {
 }
 .call-tiles .tile {
   --tile-w: 20px;
-  --tile-h: 28px;
 }
 .shanten-mini {
   display: flex;
@@ -1163,9 +1150,6 @@ body.no-labels .tile-label {
 }
 .efficiency-hand > .tile {
   --tile-w: var(--eff-tile-w);
-  --tile-h: calc(var(--tile-w) * 1.38);
-  width: var(--tile-w);
-  height: var(--tile-h);
   flex: 0 0 var(--tile-w);
   min-width: 0;
 }
@@ -1174,9 +1158,6 @@ body.no-labels .tile-label {
 }
 .efficiency-hand .tile-fallback {
   font-size: calc(var(--eff-tile-w) * 1.12);
-}
-.efficiency-hand .tile img {
-  object-fit: contain;
 }
 .efficiency-history .efficiency-hand {
   padding-top: 14px;
@@ -1309,7 +1290,6 @@ body.no-labels .tile-label {
 }
 .game-side .wait-tile .tile {
   --tile-w: 18px;
-  --tile-h: 25px;
 }
 .game-side .wait-tile small {
   font-size: 9px;
@@ -1324,7 +1304,6 @@ body.no-labels .tile-label {
 }
 .defense-opponents .training-river .tile {
   --tile-w: 33px;
-  --tile-h: 46px;
 }
 .defense-opponents .training-river .tile-fallback {
   font-size: 37px;
@@ -1369,7 +1348,6 @@ body.no-labels .tile-label {
 }
 .palette-row .tile {
   --tile-w: clamp(25px, 2.5vw, 38px);
-  --tile-h: calc(var(--tile-w) * 1.4);
 }
 .palette-row .tile-fallback {
   font-size: calc(var(--tile-w) * 1.17);
@@ -1702,8 +1680,7 @@ details > summary {
     width: calc(var(--river-w) * 6 + 10px);
   }
   .dora-rack .tile {
-    width: 16px;
-    height: 23px;
+    --tile-w: 16px;
   }
   .river.east {
     left: 74%;
@@ -1784,8 +1761,7 @@ details > summary {
     margin: 0 auto;
   }
   .dora-rack .tile {
-    width: 21px;
-    height: 29px;
+    --tile-w: 21px;
   }
 }
 @media (max-width: 700px) {
@@ -2009,8 +1985,7 @@ details > summary {
     margin-top: 5px;
   }
   .concealed .tile.back {
-    width: 9px;
-    height: 15px;
+    --tile-w: 9px;
   }
   .melds {
     gap: 4px;
@@ -2018,11 +1993,9 @@ details > summary {
     margin-top: 4px;
   }
   .meld .tile,
-  .meld .tile.small {
-    width: 12px;
-    height: 18px;
+  .meld .tile.small,
+  .meld .tile.back {
     --tile-w: 12px;
-    --tile-h: 18px;
   }
   .seat.east .melds,
   .seat.west .melds {
@@ -2034,10 +2007,7 @@ details > summary {
   }
   .dora-rack .tile,
   .dora-rack .tile.small {
-    width: 14px;
-    height: 20px;
     --tile-w: 14px;
-    --tile-h: 20px;
   }
   .table-mark {
     font-size: 8px;
@@ -2113,7 +2083,6 @@ details > summary {
   }
   .game-side .analysis-table .waits .tile {
     --tile-w: 23px;
-    --tile-h: 32px;
   }
   .practice-top {
     align-items: flex-start;
@@ -2194,7 +2163,6 @@ details > summary {
   }
   .wait-tile .tile {
     --tile-w: 23px;
-    --tile-h: 32px;
   }
   .wait-tile small {
     font-size: 9px;
@@ -2207,7 +2175,6 @@ details > summary {
   }
   .defense-opponents .training-river .tile {
     --tile-w: 27px;
-    --tile-h: 38px;
   }
   .defense-opponents .training-river {
     gap: 5px;
@@ -2225,7 +2192,6 @@ details > summary {
   }
   .palette-row .tile {
     --tile-w: calc((100vw - 116px) / 9);
-    --tile-h: calc(var(--tile-w) * 1.4);
   }
   .palette-row .tile-label {
     font-size: 7px;
@@ -2443,7 +2409,7 @@ details > summary {
 .mahjong-board .seat-main > div { flex-direction: row; flex-wrap: wrap; gap: 4px; min-width: 0; }
 .mahjong-board .seat-name { overflow-wrap: anywhere; }
 .mahjong-board .concealed { display: flex; flex-wrap: wrap; gap: 1px; }
-.mahjong-board .concealed .tile.back { width: 8px; height: 13px; }
+.mahjong-board .concealed .tile.back { --tile-w: 8px; }
 .mahjong-board .melds { max-width: 100%; justify-content: flex-start; gap: 6px; }
 .mahjong-board .river {
   width: 100%; display: grid; grid-template-columns: 1fr; gap: 5px;
@@ -2452,13 +2418,13 @@ details > summary {
 .river-row {
   --river-w: min(30px, calc((100cqw - 15px) / 6.4));
   display: flex; gap: 3px; align-items: center;
-  min-height: calc(var(--river-w) * 1.36 + 2px);
+  min-height: calc(var(--river-w) * var(--tile-ratio) + 2px);
 }
-.mahjong-board .river-cell { flex: 0 0 var(--river-w); height: calc(var(--river-w) * 1.36); align-items: center; justify-content: center; }
-.mahjong-board .river-cell.riichi-cut { flex-basis: calc(var(--river-w) * 1.36); outline-offset: 0; }
+.mahjong-board .river-cell { flex: 0 0 var(--river-w); height: calc(var(--river-w) * var(--tile-ratio)); align-items: center; justify-content: center; }
+.mahjong-board .river-cell.riichi-cut { flex-basis: calc(var(--river-w) * var(--tile-ratio)); outline-offset: 0; }
 .riichi-cut > .tile { transform: rotate(90deg); flex-shrink: 0; }
 .mahjong-board .river .tile, .mahjong-board .river .tile.small {
-  width: var(--river-w); height: calc(var(--river-w) * 1.36); min-width: 0; margin: 0; flex-shrink: 0;
+  min-width: 0; margin: 0; flex-shrink: 0;
 }
 .mahjong-board .river .tile-fallback { font-size: calc(var(--river-w) * 1.18); }
 .mahjong-board .table-mark { display: none; }
@@ -2482,7 +2448,7 @@ details > summary {
 .hand-footer { flex-wrap: wrap; }
 .tiles-hand { flex-wrap: wrap; }
 /* Compact table: four separate zones below the information row.
-   Passive river tiles stay compact; actionable hand tiles wrap at 36x50px. */
+   Passive river tiles stay compact; actionable game hands wrap at 36px wide. */
 @media (max-width: 1100px) {
   .mahjong-board { grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-areas: 'center dora' 'north east' 'west south'; }
@@ -2496,8 +2462,8 @@ details > summary {
   .mahjong-board .seat-name { font-size: 11px; }
   .mahjong-board .river .tile-label { font-size: 6px; }
   .mahjong-board .concealed { display: none; }
-  .tiles-hand, .tiles-hand.full-hand { --hand-tile-w: 36px; --hand-tile-h: 50px; flex-wrap: wrap; gap: 6px; }
-  .tiles-hand .tile, .tiles-hand.full-hand .tile { width: var(--hand-tile-w); height: var(--hand-tile-h); flex: 0 0 var(--hand-tile-w); }
+  .tiles-hand, .tiles-hand.full-hand { --hand-tile-w: 36px; flex-wrap: wrap; gap: 6px; }
+  .tiles-hand .tile, .tiles-hand.full-hand .tile { flex: 0 0 var(--tile-w); }
   .hand .tile.drawn { margin-left: 3px; }
   .furiten-panel { padding: 12px; }
   .wait-details { gap: 8px; }

@@ -1,6 +1,7 @@
 import { writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import assert from 'node:assert/strict';
+import { assertTileRatios, checkDefenseGeometry } from './browser-tile-ratios.mjs';
 
 /** Capture actual border boxes and the full sizing cascade before changing CSS.
  * Custom properties retain calc() text, so bounding boxes are authoritative. */
@@ -57,6 +58,7 @@ export async function runHandGeometryChecks(browser, out) {
     const page = await context.newPage();
     await page.route('https://raw.githubusercontent.com/**',r => r.abort());
     await page.goto('http://127.0.0.1:8765/Riichi-Mahjong/');
+    await checkDefenseGeometry(page, out, width);
     await page.locator('.nav-button[data-tab="efficiency"]').click();
     await page.locator('[data-action="eff-answer"]').first().waitFor();
     const row = await page.evaluate(handGeometry);
@@ -97,6 +99,7 @@ export async function runHandGeometryChecks(browser, out) {
       .every(img => img.complete && img.naturalWidth === 300));
     const images = await page.evaluate(handGeometry);
     assertHand(images, 14);
+    await assertTileRatios(page, `efficiency ${width} loaded SVG artwork`);
     assert.ok(images.tiles.every(t => t.image?.naturalHeight === 400));
     await page.unroute('https://raw.githubusercontent.com/**');
     await page.route('https://raw.githubusercontent.com/**',r => r.abort());
@@ -113,6 +116,7 @@ export async function runHandGeometryChecks(browser, out) {
       assert.equal(await page.locator('[data-action="eff-next"]').count(), 0);
       await page.locator('.efficiency-history summary').first().click();
       assertHand(await page.evaluate(handGeometry,'.efficiency-history .efficiency-hand'), 14);
+      await assertTileRatios(page, `${shape} ${width} final / wait / history / analysis`);
     }
     await page.screenshot({path:resolve(out,`efficiency-result-${width}.png`),fullPage:true});
     await page.getByRole('button',{name:'다시 연습하기',exact:true}).click();

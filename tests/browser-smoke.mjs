@@ -11,6 +11,7 @@ import { runLayoutChecks } from './browser-layout.mjs';
 import { runHandGeometryChecks } from './browser-hand-geometry.mjs';
 import { checkEfficiencyExport } from './browser-efficiency-export.mjs';
 import { replayEfficiencyReport } from './efficiency-report-replay.mjs';
+import { assertTileRatios } from './browser-tile-ratios.mjs';
 
 const root = resolve(import.meta.dirname, '..'),
   out = resolve(root, 'test-results');
@@ -95,6 +96,7 @@ try {
     assert.equal(await page.locator('.strategy-analysis').count(), 1, 'strategy explanation missing');
     await page.locator('.strategy-analysis summary').first().click();
     await page.getByRole('button', { name: '추천 숨기기', exact: true }).click();
+    await assertTileRatios(page, `${size.name} game hand / concealed / dora`);
     await page.screenshot({ path: resolve(out, `${size.name}-table.png`), fullPage: true });
     for (const tab of ['efficiency', 'defense', 'alllast', 'calculator', 'replay']) {
       await page.locator(`.nav-button[data-tab="${tab}"]`).click();
@@ -152,6 +154,7 @@ try {
         await page.getByRole('button', { name: '필요 점수 계산', exact: true }).click();
         assert.equal(await page.locator('.all-solutions article').count(), 4);
       } else if (tab === 'calculator') {
+        await assertTileRatios(page, `${size.name} calculator hand / palette / analysis`);
         await page.getByRole('button', { name: '국사 예제', exact: true }).click();
         assert.equal(await page.locator('.big-stat').innerText(), '텐파이');
         await page.getByRole('button', { name: '비우기', exact: true }).click();
@@ -177,6 +180,7 @@ try {
         false,
         `${size.name} ${tab} result overflow`
       );
+      if (tab !== 'alllast') await assertTileRatios(page, `${size.name} ${tab} result`);
       await page.screenshot({ path: resolve(out, `${size.name}-${tab}.png`), fullPage: true });
     }
     assert.deepEqual(errors, [], `${size.name} runtime errors`);

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { resolve } from 'node:path';
+import { assertTileRatios } from './browser-tile-ratios.mjs';
 /** Real DOM bounds, including rotated tiles, not merely screenshot inspection. */
 function geometryReport(){
  const box=e=>{const r=e.getBoundingClientRect();return {x:r.x,y:r.y,right:r.right,bottom:r.bottom,width:r.width,height:r.height};};
@@ -34,6 +35,7 @@ export async function runLayoutChecks(browser,out) {
    const geometry=await page.evaluate(geometryReport);
    assert.equal(geometry.overflow,false,`${width}x${height} ${n} tiles overflow`);
    assert.deepEqual(geometry.collisions,[],`${width}x${height} ${n} tiles collisions`);
+   await assertTileRatios(page, `${width}x${height} ${n} river tiles / melds / concealed / dora`);
    assert.equal(await page.locator('.river-cell').count(),n*4);
    if(n>=12)assert.ok(geometry.rotations.every(t=>t==='matrix(0, 1, -1, 0, 0, 0)'), 'riichi must rotate 90 degrees');
    if(width<=700)assert.ok(geometry.handTargets.every(r=>r.width>=35&&r.height>=44),'small touch target');
@@ -43,6 +45,7 @@ export async function runLayoutChecks(browser,out) {
   assert.match(await page.locator('.ron-blocked-list').innerText(),/6삭·9삭/);
   assert.ok(await page.locator('.furiten-cause').count());
   assert.deepEqual((await page.evaluate(geometryReport)).collisions,[],'warning overlaps controls');
+  await assertTileRatios(page, `${width}x${height} furiten causes / waits`);
   await page.screenshot({path:resolve(out,`layout-${width}x${height}.png`),fullPage:true});
   if(process.env.VISUAL_REVIEW==='1' && (width===393||width===1440)) console.log('VISUAL_TABLE_'+width+':'+(await page.screenshot({type:'jpeg',quality:55,fullPage:true})).toString('base64'));
   await page.locator('[data-action="discard-tile"][data-t="0"]').tap();
