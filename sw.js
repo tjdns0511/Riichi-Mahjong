@@ -1,6 +1,6 @@
 /* Offline shell, scoped to this repository path. Version bumps evict obsolete
  * module graphs together so cached engine and UI versions never mix. */
-const CACHE = 'riichi-mahjong-v1.0.0';
+const CACHE = 'riichi-mahjong-v1.1.0';
 const FILES = [
   './',
   './index.html',
@@ -11,10 +11,13 @@ const FILES = [
   './js/core/shanten.js',
   './js/core/scoring.js',
   './js/core/game.js',
+  './js/core/hand-analysis.js',
+  './js/core/efficiency.js',
   './js/core/ai.js',
   './js/core/all-last.js',
   './js/ui/common.js',
   './js/ui/table.js',
+  './js/ui/furiten.js',
   './js/ui/trainers.js',
   './js/ui/replay.js',
 ];

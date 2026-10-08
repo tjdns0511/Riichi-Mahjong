@@ -1,6 +1,8 @@
 import { counts, typeOf, shuffled, isOutside, WINDS, validTiles } from './tiles.js';
 import { waits, shanten, rankDiscards } from './shanten.js';
 import { scoreHand, settle, payments } from './scoring.js';
+import { playerWaits, furiten } from './hand-analysis.js';
+export { playerWaits, furiten } from './hand-analysis.js';
 
 export const DEFAULT_CONFIG = {
   length: 'hanchan',
@@ -45,10 +47,7 @@ export function visibleCounts(s, seat) {
     p.river.forEach((x) => ids.add(x.id));
     p.melds.forEach((m) => m.tiles.forEach((id) => ids.add(id)));
   });
-  s.dead
-    .slice(4, 4 + s.doraCount * 2)
-    .filter((_, i) => i % 2 === 0)
-    .forEach((id) => ids.add(id));
+  indicators(s).forEach((id) => ids.add(id));
   return counts([...ids]);
 }
 export const indicators = (s) => Array.from({ length: s.doraCount }, (_, i) => s.dead[4 + i * 2]);
@@ -56,26 +55,13 @@ export const uraIndicators = (s) =>
   Array.from({ length: s.doraCount }, (_, i) => s.dead[5 + i * 2]);
 export const seatWind = (s, i) => (i - s.dealer + 4) % 4;
 export const roundName = (s) => `${WINDS[Math.floor(s.kyoku / 4)] ?? '북'} ${(s.kyoku % 4) + 1}국`;
-/** Waits include the player's own melds for the four-copy constraint. */
-export function playerWaits(p) {
-  return waits(
-    counts(p.hand),
-    p.melds.length,
-    counts([...p.hand, ...p.melds.flatMap((m) => m.tiles)])
-  );
-}
-/** Furiten is a property of the ENTIRE wait, not just the offered tile.
- * Called-away discards stay in the river record and still cause furiten. */
-export function furiten(p) {
-  const w = playerWaits(p),
-    discard = w.some((t) => p.river.some((d) => typeOf(d.id) === t));
-  return {
-    discard,
-    temporary: p.tempFuriten,
-    riichi: p.riichiFuriten,
-    any: discard || p.tempFuriten || p.riichiFuriten,
-    waits: w,
-  };
+/** Stable public scoring context. Future wins never assume hidden ura or
+ * situational bonuses (ippatsu, last tile, replacement tile). */
+export function publicScoreContext(s, seat, p = s.players[seat]) {
+  return { seat: seatWind(s, seat), round: Math.floor(s.kyoku / 4),
+    dealer: seat === s.dealer, riichi: p.riichi, doubleRiichi: p.doubleRiichi,
+    doraIndicators: indicators(s), aka: s.config.aka,
+    doubleYakuman: s.config.doubleYakuman, kiriage: s.config.kiriage };
 }
 /** Match is a deterministic state machine. Only dispatch() changes a live game.
  * AI and UI use the same legal-action methods, so UI state cannot bypass rules.

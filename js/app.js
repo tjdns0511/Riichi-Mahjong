@@ -199,8 +199,9 @@ function render() {
   if (ui.tab === 'game') {
     const s = match.s;
     content.innerHTML = `<div class="view-heading"><div><span class="eyebrow">THE TABLE</span><h1>실전 대국</h1></div><div class="view-actions">${ui.started ? button(ui.paused ? '계속하기' : '일시정지', 'pause') : ''}${ui.started ? button('새 대국', 'new-match') : ''}${ui.started ? button('패보 저장', 'export-download') : ''}</div></div>${ui.paused && ui.started ? '<div class="pause-strip">일시정지 중 · 계속하기를 누르면 진행됩니다.</div>' : ''}
-    ${ui.handoff ? `<section class="privacy-panel"><span class="privacy-symbol">${['東', '南', '西', '北'][ui.viewer]}</span><h2>${esc(s.players[ui.viewer].name)}의 차례</h2><p class="muted">다음 사람에게 기기를 넘겨 주세요.</p>${button('내 손패 보기', 'reveal-hand', '', 'primary')}</section>` : `<div class="game-layout"><div class="game-surface">${board(s, ui.viewer)}${handPanel(match, ui)}${resultPanel(s)}</div><aside class="game-side">${ui.started ? gameAnalysis(match, ui) : lobby(match.config)}</aside></div>`}`;
+    ${ui.handoff ? `<section class="privacy-panel"><span class="privacy-symbol">${['東', '南', '西', '北'][ui.viewer]}</span><h2>${esc(s.players[ui.viewer].name)}의 차례</h2><p class="muted">다음 사람에게 기기를 넘겨 주세요.</p>${button('내 손패 보기', 'reveal-hand', '', 'primary')}</section>` : `<div class="game-layout"><div class="game-surface">${board(s, ui.viewer, { selected: ui.selected, riichi: ui.riichi })}${handPanel(match, ui)}${resultPanel(s)}</div><aside class="game-side">${ui.started ? gameAnalysis(match, ui) : lobby(match.config)}</aside></div>`}`;
   } else if (ui.tab === 'efficiency') content.innerHTML = efficiencyView(efficiency);
+  else if (ui.tab === 'practice') content.innerHTML = `<h1>연습 메뉴</h1><section class="panel"><div class="action-row">${TABS.filter(t => ['efficiency', 'defense', 'alllast', 'calculator'].includes(t[0])).map(t => `<button class="button" data-tab="${t[0]}">${t[2]}</button>`).join('')}</div>${button('새 패효율 연습', 'eff-new', '', 'primary')}</section>`;
   else if (ui.tab === 'defense') content.innerHTML = defenseView(defense);
   else if (ui.tab === 'calculator') content.innerHTML = calculatorView(calculator);
   else if (ui.tab === 'alllast') content.innerHTML = allLastView(alllast);
@@ -338,6 +339,8 @@ root.addEventListener('click', async (event) => {
       ui.selected = Number(el.dataset.id);
       track(document.querySelector('#content'), typeOf(ui.selected));
       if (ui.tab !== 'game') return;
+    } else if (action === 'cancel-selection') {
+      ui.selected = null;
     } else if (action === 'confirm-discard') {
       if (ui.selected === null) return;
       perform({ kind: 'discard', player: ui.viewer, tile: ui.selected, riichi: ui.riichi });
@@ -385,23 +388,28 @@ root.addEventListener('click', async (event) => {
       ui.riichi = false;
     } else if (action === 'eff-answer') {
       answerEfficiency(efficiency, Number(el.dataset.t));
+    } else if (action === 'eff-menu') {
+      ui.tab = 'practice';
     } else if (action === 'eff-new') {
       efficiency = newEfficiency();
+      ui.tab = 'efficiency';
     } else if (action === 'eff-next') {
       nextEfficiency(efficiency);
     } else if (action === 'eff-reveal') {
       efficiency.show = !efficiency.show;
     } else if (action === 'eff-deep') {
-      const current = efficiency;
+      const current = efficiency, revision = current.revision;
+      if (current.ended || current.busy) return;
+      const record = current.choice === null ? null : current.history.at(-1);
       current.busy = true;
       render();
       try {
         const rows = await analyze(
           'twoStep',
-          current.hand,
-          counts([...current.hand, ...current.river])
+          record?.hand ?? current.hand,
+          record?.known ?? counts([...current.hand, ...current.river])
         );
-        if (current === efficiency) {
+        if (current === efficiency && current.revision === revision && !current.ended) {
           current.rows = rows;
           current.twoStep = true;
         }
@@ -549,6 +557,9 @@ root.addEventListener('contextmenu', (event) => {
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) clearTimeout(aiTimer);
   else scheduleAI();
+});
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && ui.selected !== null) { ui.selected = null; render(); }
 });
 shell();
 render();

@@ -1,3 +1,4 @@
+import { selectionAnalysis, furitenPanel } from './furiten.js';
 import { typeOf, WINDS, sorted, label } from '../core/tiles.js';
 import { roundName, indicators, seatWind, furiten, visibleCounts } from '../core/game.js';
 import { shantenDetails, rankDiscards } from '../core/shanten.js';
@@ -17,23 +18,20 @@ import {
 const LEVEL = { easy: '초급', medium: '중급', hard: '고급' };
 /** Relative positions rotate with the human whose turn it is. The concealed
  * hands of every other seat remain backs, including local hotseat spectators. */
-export function board(s, viewer = 0, { replay = false } = {}) {
-  const positions = ['south', 'east', 'north', 'west'];
-  return `<div class="mahjong-board" aria-label="${roundName(s)} 마작 탁자">
-    <div class="board-grain"></div>
-    <div class="table-center"><span class="eyebrow">${s.config.length === 'east' ? 'EAST' : 'EAST · SOUTH'}</span><strong>${roundName(s)}</strong><div class="center-count"><b>${s.live.length}</b><span>남은 패</span></div><div class="center-sticks"><span>본장 <b>${s.honba}</b></span><span>공탁 <b>${s.sticks}</b></span></div></div>
-    ${positions
-      .map((pos, rel) => {
-        const i = (viewer + rel) % 4,
-          p = s.players[i],
-          wind = WINDS[seatWind(s, i)];
-        return `<section class="seat ${pos} ${i === s.current && s.phase === 'turn' ? 'active' : ''}"><div class="seat-main"><span class="wind ${i === s.dealer ? 'dealer' : ''}">${wind}</span><div><span class="seat-name">${esc(p.name)} ${p.riichi ? '<em>리치</em>' : ''}</span><strong>${num(p.score)}</strong></div></div>${rel !== 0 ? `<div class="concealed">${Array.from({ length: p.hand.length }, () => tile(0, { back: true })).join('')}</div>` : ''}<div class="melds" data-public>${p.melds.map((m) => `<span class="meld" title="${m.kind}">${m.tiles.map((id, j) => (m.kind === 'ankan' && (j === 0 || j === 3) && !replay ? tile(0, { back: true }) : tile(id, { small: true, aka: s.config.aka, classes: id === m.called ? 'called-tile' : '' }))).join('')}</span>`).join('')}</div></section>
-    <div class="river ${pos}" data-public aria-label="${esc(p.name)} 버림패">${p.river.map((d) => `<span class="river-cell ${d.riichi ? 'riichi-cut' : ''} ${d.called ? 'called-away' : ''}">${tile(d.id, { small: true, aka: s.config.aka, classes: d.tsumogiri ? 'tsumogiri' : 'tedashi', attrs: `data-seq="${d.seq}"` })}</span>`).join('')}</div>`;
-      })
-      .join('')}
-    <div class="dora-rack"><span>도라 표시패</span><div data-public>${tiles(indicators(s), { small: true, aka: s.config.aka })}${Array.from({ length: 5 - s.doraCount }, () => tile(0, { back: true })).join('')}</div></div>
-    <span class="table-mark">RIICHI</span>
-  </div>`;
+export function board(s,viewer=0,{replay=false,selected=null,riichi=false}={}) {
+ const positions=['south','east','north','west'];
+ const causes=selectionAnalysis(s,viewer,selected,riichi)?.furiten.causeIds??[];
+ return `<div class="mahjong-board" aria-label="${roundName(s)} 마작 탁자"><div class="board-grain"></div>
+ <div class="table-center"><span class="eyebrow">${s.config.length==='east'?'EAST':'EAST · SOUTH'}</span><strong>${roundName(s)}</strong><div class="center-count"><b>${s.live.length}</b><span>남은 패</span></div><div class="center-sticks"><span>본장 <b>${s.honba}</b></span><span>공탁 <b>${s.sticks}</b></span></div></div>
+ ${positions.map((pos,rel)=>{
+  const i=(viewer+rel)%4,p=s.players[i],wind=WINDS[seatWind(s,i)];
+  return `<div class="table-zone ${pos}" data-seat="${i}">
+   <section class="seat ${pos} ${i===s.current&&s.phase==='turn'?'active':''}"><div class="seat-main"><span class="wind ${i===s.dealer?'dealer':''}">${wind}</span><div><span class="seat-name">${esc(p.name)} ${p.riichi?'<em>리치</em>':''}</span><strong>${num(p.score)}</strong></div></div>
+   ${rel!==0?`<div class="concealed">${Array.from({length:p.hand.length},()=>tile(0,{back:true})).join('')}</div>`:''}
+   <div class="melds" data-public>${p.melds.map(m=>`<span class="meld" title="${m.kind}">${m.tiles.map((id,j)=>m.kind==='ankan'&&(j===0||j===3)&&!replay?tile(0,{back:true}):tile(id,{small:true,aka:s.config.aka,classes:id===m.called?'called-tile':''})).join('')}</span>`).join('')}</div></section>
+   <div class="river ${pos}" data-public aria-label="${esc(p.name)} 버림패">${Array.from({length:Math.ceil(p.river.length/6)},(_,row)=>`<div class="river-row">${p.river.slice(row*6,row*6+6).map(d=>`<span class="river-cell ${d.riichi?'riichi-cut':''} ${d.called?'called-away':''} ${i===viewer&&causes.includes(d.id)?'furiten-cause':''}">${tile(d.id,{small:true,aka:s.config.aka,classes:d.tsumogiri?'tsumogiri':'tedashi',attrs:`data-seq="${d.seq}"`})}</span>`).join('')}</div>`).join('')}</div></div>`;
+ }).join('')}
+ <div class="dora-rack"><span>도라 표시패</span><div data-public>${tiles(indicators(s),{small:true,aka:s.config.aka})}${Array.from({length:5-s.doraCount},()=>tile(0,{back:true})).join('')}</div></div><span class="table-mark">RIICHI</span></div>`;
 }
 /** Compact lobby remains beside the table until the first deal is started. */
 export function lobby(config) {
@@ -61,6 +59,7 @@ export function handPanel(match, ui) {
     p = s.players[ui.viewer],
     onTurn = s.phase === 'turn' && s.current === ui.viewer && p.kind === 'human' && ui.started,
     ownTurn = onTurn && !ui.paused;
+  const waiting = selectionAnalysis(s, ui.viewer, ownTurn ? ui.selected : null, ui.riichi);
   const f = furiten({
       ...p,
       hand: p.drawn === null ? p.hand : p.hand.filter((id) => id !== p.drawn),
@@ -72,7 +71,7 @@ export function handPanel(match, ui) {
   if (p.drawn !== null) hand.push(p.drawn);
   return `<section class="hand-panel"><div class="hand-heading"><div><span class="wind">${WINDS[seatWind(s, ui.viewer)]}</span><b>${esc(p.name)}</b> ${onTurn ? pill('타패 선택', 'green') : ''}</div><div class="hand-badges">${f.discard ? pill('타패 후리텐', 'warning') : ''}${f.temporary ? pill('동순 후리텐', 'warning') : ''}${f.riichi ? pill('리치 후 후리텐', 'warning') : ''}${p.riichi ? pill(p.doubleRiichi ? '더블리치' : '리치', 'gold') : ''}</div></div>
     <div class="hand tiles-hand ${hand.length > 11 ? 'full-hand' : ''}">${hand.map((id) => tile(id, { action: ownTurn ? 'discard-tile' : 'inspect-tile', selected: id === ui.selected, aka: s.config.aka, disabled: ownTurn && (p.forbidden.includes(typeOf(id)) || (p.riichi && id !== p.drawn) || (ui.riichi && !riichiIds.includes(id))), classes: id === p.drawn ? 'drawn' : '' })).join('')}</div>
-    <div class="hand-footer"><span class="micro">${ui.riichi ? '리치할 패를 선택한 뒤 한 번 더 누르세요.' : ownTurn ? '한 번 선택 · 같은 패를 다시 누르면 타패' : '패를 누르면 공개된 같은 패를 강조합니다.'}</span>${ownTurn && ui.selected !== null ? button('선택한 패 타패', 'confirm-discard', '', 'primary') : ''}</div>
+    <div class="hand-footer"><span class="micro">${ui.riichi ? '리치할 패를 선택한 뒤 한 번 더 누르세요.' : ownTurn ? '한 번 선택 · 같은 패를 다시 누르면 타패' : '패를 누르면 공개된 같은 패를 강조합니다.'}</span>${ownTurn && ui.selected !== null ? button('선택 취소', 'cancel-selection') + button('선택한 패 타패', 'confirm-discard', '', 'primary') : ''}</div>
     ${
       ownTurn
         ? `<div class="action-row">${p.drawn !== null && match.score(ui.viewer, p.drawn, true) ? button('쯔모', 'tsumo', '', 'primary') : ''}${match.riichiDiscards(ui.viewer).length ? button(ui.riichi ? '리치 취소' : '리치', 'riichi', '', ui.riichi ? 'gold' : '') : ''}${match
@@ -90,6 +89,7 @@ export function handPanel(match, ui) {
         : ''
     }
     ${s.phase === 'response' && s.pending.options[ui.viewer]?.length && !s.pending.decisions[ui.viewer] ? `<div class="call-window"><b>${esc(s.players[s.pending.source].name)}의 ${label(typeOf(s.pending.tile))}</b><div class="action-row">${s.pending.options[ui.viewer].map((o, index) => button(`<span>${{ ron: '론', pon: '퐁', chi: '치', minkan: '밍깡' }[o.kind]}</span>${o.tiles ? `<span class="call-tiles">${tiles(o.tiles, { small: true, aka: s.config.aka })}</span>` : ''}`, 'respond', `data-choice="${index}"`, o.kind === 'ron' ? 'primary' : '')).join('')}${button('넘기기', 'respond', 'data-choice="-1"')}</div></div>` : ''}
+    ${furitenPanel(waiting)}
   </section>`;
 }
 /** Show derived match results and the exact fu/yaku breakdown. */

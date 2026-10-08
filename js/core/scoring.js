@@ -62,7 +62,7 @@ function meldGroup(m) {
 }
 /** The winning tile can occupy several groups. Every interpretation is scored;
  * otherwise pinfu, concealed triplets and wait fu are easily mis-scored. */
-function allocations(d, win) {
+export function allocations(d, win) {
   if (d.kind !== 'standard')
     return [{ part: 'special', index: -1, wait: d.kind === 'chiitoi' ? '단기' : '국사' }];
   const out = [];

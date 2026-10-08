@@ -2363,3 +2363,91 @@ details > summary {
     transition: none !important;
   }
 }
+
+/* Content-sized zones replace fixed river anchors. Rows, sideways riichi tiles
+   and melds reserve real layout space. No clipping/z-index overlap workaround. */
+.mahjong-board {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(135px, 1fr) minmax(0, 1fr);
+  grid-template-areas: '. north .' 'west center east' '. south dora';
+  gap: 16px 12px; align-items: start; padding: 16px;
+  aspect-ratio: auto; min-height: 0; max-height: none; overflow: visible;
+}
+.table-zone { min-width: 0; display: grid; gap: 12px; }
+.table-zone.north { grid-area: north; }
+.table-zone.south { grid-area: south; }
+.table-zone.east { grid-area: east; }
+.table-zone.west { grid-area: west; }
+.mahjong-board .table-center { grid-area: center; width: 100%; align-self: center; }
+.mahjong-board .dora-rack { grid-area: dora; align-self: end; }
+.mahjong-board .table-center, .mahjong-board .dora-rack,
+.mahjong-board .seat, .mahjong-board .river {
+  position: static; inset: auto; transform: none; max-width: none; z-index: auto;
+}
+.mahjong-board .seat { width: 100%; min-width: 0; }
+.mahjong-board .seat-main { flex-direction: row; flex-wrap: wrap; padding: 4px; gap: 4px; }
+.mahjong-board .seat-main > div { flex-direction: row; flex-wrap: wrap; gap: 4px; min-width: 0; }
+.mahjong-board .seat-name { overflow-wrap: anywhere; }
+.mahjong-board .concealed { display: flex; flex-wrap: wrap; gap: 1px; }
+.mahjong-board .concealed .tile.back { width: 8px; height: 13px; }
+.mahjong-board .melds { max-width: 100%; justify-content: flex-start; gap: 6px; }
+.mahjong-board .river {
+  width: 100%; display: grid; grid-template-columns: 1fr; gap: 5px;
+  container-type: inline-size; min-height: 2px;
+}
+.river-row {
+  --river-w: min(30px, calc((100cqw - 15px) / 6.4));
+  display: flex; gap: 3px; align-items: center;
+  min-height: calc(var(--river-w) * 1.36 + 2px);
+}
+.mahjong-board .river-cell { flex: 0 0 var(--river-w); height: calc(var(--river-w) * 1.36); align-items: center; justify-content: center; }
+.mahjong-board .river-cell.riichi-cut { flex-basis: calc(var(--river-w) * 1.36); outline-offset: 0; }
+.riichi-cut > .tile { transform: rotate(90deg); flex-shrink: 0; }
+.mahjong-board .river .tile, .mahjong-board .river .tile.small {
+  width: var(--river-w); height: calc(var(--river-w) * 1.36); min-width: 0; margin: 0; flex-shrink: 0;
+}
+.mahjong-board .river .tile-fallback { font-size: calc(var(--river-w) * 1.18); }
+.mahjong-board .table-mark { display: none; }
+.mahjong-board .dora-rack > div { flex-wrap: wrap; }
+.furiten-cause { outline: 2px solid #ff9b75; outline-offset: 1px; border-radius: 3px; }
+.furiten-cause.called-away { opacity: .7; }
+.furiten-panel { margin-top: 20px; padding: 16px; border: 1px solid var(--line); border-radius: 8px; }
+.furiten-panel.is-furiten { border-color: #ac7754; background: #4c30221c; }
+.furiten-panel h3 { margin: 0 0 12px; font-size: 16px; }
+.furiten-panel p { font-size: 13px; line-height: 1.7; }
+.furiten-causes { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
+.wait-details { display: flex; flex-wrap: wrap; gap: 12px; margin: 14px 0; }
+.wait-card { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 10px; border: 1px solid var(--line); border-radius: 6px; font-size: 12px; }
+.wait-card.ron-blocked { border-color: #b57655; }
+.wait-card.exhausted { border-style: dashed; }
+.wait-card.exhausted > .tile { opacity: .45; }
+.tsumo-allowed { color: #72b38e; }
+.efficiency-history details { padding: 14px 0; border-top: 1px solid var(--line); }
+.efficiency-history summary { cursor: pointer; padding: 8px 0; line-height: 1.7; }
+.efficiency-history p { font-size: 13px; line-height: 1.7; }
+.history-hand { display: flex; flex-wrap: wrap; gap: 3px; padding-top: 14px; }
+.hand-footer { flex-wrap: wrap; }
+.tiles-hand { flex-wrap: wrap; }
+/* Compact table: four separate zones below the information row.
+   Passive river tiles stay compact; actionable hand tiles wrap at 36x50px. */
+@media (max-width: 1100px) {
+  .mahjong-board { grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas: 'center dora' 'north east' 'west south'; }
+  .mahjong-board .table-center { max-width: 200px; justify-self: center; }
+  .mahjong-board .dora-rack { align-self: center; justify-self: center; }
+}
+@media (max-width: 700px) {
+  .mahjong-board { padding: 12px 8px; gap: 18px 10px; border-width: 5px; }
+  .mahjong-board .table-center { padding: 8px 4px; width: 100%; }
+  .mahjong-board .seat-main strong { font-size: 15px; }
+  .mahjong-board .seat-name { font-size: 11px; }
+  .mahjong-board .river .tile-label { font-size: 6px; }
+  .mahjong-board .concealed { display: none; }
+  .tiles-hand, .tiles-hand.full-hand { --hand-tile-w: 36px; --hand-tile-h: 50px; flex-wrap: wrap; gap: 6px; }
+  .tiles-hand .tile, .tiles-hand.full-hand .tile { width: var(--hand-tile-w); height: var(--hand-tile-h); flex: 0 0 var(--hand-tile-w); }
+  .hand .tile.drawn { margin-left: 3px; }
+  .furiten-panel { padding: 12px; }
+  .wait-details { gap: 8px; }
+  .wait-card { padding: 8px; max-width: 100%; }
+  .hand-footer .button { min-height: 44px; }
+}
