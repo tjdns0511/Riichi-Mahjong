@@ -44,7 +44,7 @@ export async function runLayoutChecks(browser,out) {
   assert.ok(await page.locator('.furiten-cause').count());
   assert.deepEqual((await page.evaluate(geometryReport)).collisions,[],'warning overlaps controls');
   await page.screenshot({path:resolve(out,`layout-${width}x${height}.png`),fullPage:true});
-  if(width===393||width===1440) console.log('VISUAL_TABLE_'+width+':'+(await page.screenshot({type:'jpeg',quality:55,fullPage:true})).toString('base64'));
+  if(process.env.VISUAL_REVIEW==='1' && (width===393||width===1440)) console.log('VISUAL_TABLE_'+width+':'+(await page.screenshot({type:'jpeg',quality:55,fullPage:true})).toString('base64'));
   await page.locator('[data-action="discard-tile"][data-t="0"]').tap();
   assert.equal(await page.locator('.furiten-panel[data-preview="true"]').count(),0,'selection must update preview');
   await page.locator('[data-action="cancel-selection"]').click();
@@ -66,7 +66,7 @@ export async function runLayoutChecks(browser,out) {
    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth+1),false,'result overflow');
   }
   await page.screenshot({path:resolve(out,`results-${width}x${height}.png`),fullPage:true});
-  if(width===393) console.log('VISUAL_RESULT_393:'+(await page.screenshot({type:'jpeg',quality:55,fullPage:true})).toString('base64'));
+  if(process.env.VISUAL_REVIEW==='1' && width===393) console.log('VISUAL_RESULT_393:'+(await page.screenshot({type:'jpeg',quality:55,fullPage:true})).toString('base64'));
   await page.getByRole('button',{name:'다시 연습하기',exact:true}).click();
   assert.equal(await page.locator('[data-action="eff-answer"]').count(),14);
   assert.deepEqual(errors,[],`${width} runtime errors`);
