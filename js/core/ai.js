@@ -193,8 +193,11 @@ export function evaluateDiscards(s, seat, { player = s.players[seat], known = vi
       }
       const noYaku = row.shanten === 0 && analysis.waits.every(w => !w.ronScore && !w.tsumoScore);
       const noRoute = !closed && !routes.length;
+      // Yakuless structural tenpai needs at least one more improvement before a
+      // normal win. Do not price it as faster than a viable one-shanten hand.
+      // Danger can still justify such a discard while folding.
       const cost = p.level === 'easy' ? row.shanten * 1000 - row.total
-        : row.shanten * 1000 - row.total * 4 - quality + (noYaku ? 450 : 0) + (noRoute ? 160 : 0)
+        : row.shanten * 1000 - row.total * 4 - quality + (noYaku ? 1300 : 0) + (noRoute ? 160 : 0)
           - (p.level === 'hard' ? Math.sqrt(value) * 2 + retained : 0)
           + (p.level === 'hard' ? danger * riskWeight : 0);
       return { ...row, id, cost, analysis, value: Math.round(value), quality, useful, routes,

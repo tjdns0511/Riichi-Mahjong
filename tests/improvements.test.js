@@ -33,6 +33,7 @@ test('4s preview: 6s cause bars BOTH 6s and 9s ron, but permits yaku tsumo', () 
   const a = preview(player(standard, { river: [cause6] }));
   assert.deepEqual(a.waits.map(w => w.t), [23, 26]);
   assert.deepEqual(a.furiten.causeTypes, [23]);
+  assert.deepEqual(a.waits.map(w => w.left), [3, 4]); assert.equal(a.total, 7);
   assert.ok(a.waits.every(w => w.ronBlocked && !w.ronAllowed && w.tsumoAllowed));
   const html = furitenPanel(a);
   assert.match(html, /론 불가능한 대기패: 6삭·9삭/);
@@ -157,11 +158,12 @@ test('known discards, cumulative score denominator and retry reset are correct',
 });
 test('AI values normal two-sided ron access over equal furiten tsumo-only waits', () => {
   const m = fixture(standard), p = m.s.players[0], known = counts(p.hand);
+  known[23] = 1; // Same public visibility: one 6s is visible in both cases.
   const normal = evaluateDiscards(m.s, 0, { known }).find(r => r.t === 21);
   p.river = [cause6];
   const f = evaluateDiscards(m.s, 0, { known }).find(r => r.t === 21);
-  assert.equal(normal.analysis.ronTotal, 8); assert.equal(f.analysis.ronTotal, 0);
-  assert.equal(f.analysis.tsumoTotal, 8); assert.ok(f.cost > normal.cost);
+  assert.equal(normal.analysis.ronTotal, 7); assert.equal(f.analysis.ronTotal, 0);
+  assert.equal(f.analysis.tsumoTotal, 7); assert.ok(f.cost > normal.cost);
   assert.ok(Number.isFinite(f.cost));
 });
 test('AI handles furiten tanki and permanent riichi furiten as tsumo-only', () => {
@@ -227,4 +229,30 @@ test('40 fixed hands respect desktop CPU latency budget, not physical Android be
   samples.sort((a, b) => a - b);
   assert.ok(samples.at(-1) < 500, 'latency exceeds 500ms guard');
   console.log('AI desktop latency p95=' + samples[37].toFixed(1) + 'ms max=' + samples.at(-1).toFixed(1) + 'ms');
+});
+
+test('legal riichi ankan preserves the engine wait set and remains optional', () => {
+  const m = fixture('1111m234p678s22z78p', { riichi: true });
+  const p = m.s.players[0]; p.drawn = p.hand.find(id => typeOf(id) === 0);
+  const legal = m.kanOptions(0); assert.ok(legal.some(k => k.kind === 'ankan'));
+  const before = furiten(beforeDraw(p)).waits;
+  const k = legal[0], after = { ...p, hand: p.hand.filter(id => !k.tiles.includes(id)), melds: [{ kind: 'ankan', tiles: k.tiles }], drawn: null };
+  assert.deepEqual(furiten(after).waits, before);
+  m.s.live.length = 3; assert.notEqual(chooseTurn(m, 0).kind, 'kan');
+});
+test('shared furiten predicate clears discard cause when waiting shape changes', () => {
+  const p = player('123m123789p78s22z', { river: [cause6], drawn: null });
+  assert.equal(furiten(p).discard, true);
+  p.hand = hand('123m123789p45s22z');
+  assert.deepEqual(furiten(p).waits, [20, 23]); // still includes 6s
+  assert.equal(furiten(p).discard, true);
+  p.hand = hand('123m123789p12s22z');
+  assert.deepEqual(furiten(p).waits, [20]); assert.equal(furiten(p).discard, false);
+});
+
+test('open yakuless structural tenpai is not preferred to a viable one-shanten hand in attack', () => {
+  const m = fixture('5577m789p6777s', { melds: [{ kind: 'pon', tiles: hand('444m') }], discards: 6 });
+  const rows = evaluateDiscards(m.s, 0);
+  assert.ok(rows.some(r => r.shanten === 0 && r.noYaku));
+  assert.equal(rows[0].noYaku, false); assert.equal(rows[0].shanten, 1);
 });
