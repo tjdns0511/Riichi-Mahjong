@@ -78,9 +78,12 @@ try {
     await page.getByRole('button', { name: '내 손패 보기', exact: true }).click();
     const first = page.locator('[data-action="discard-tile"]').first(),
       id = await first.getAttribute('data-id');
-    await first.click();
+    if(size.width<900) await first.tap(); else await first.click();
     assert.equal(await page.locator('.tile.selected').count(), 1, 'first tap must select');
-    await page.locator(`[data-action="discard-tile"][data-id="${id}"]`).click();
+    await page.locator('[data-action="cancel-selection"]').click();
+    assert.equal(await page.locator('.tile.selected').count(), 0, 'cancel selection');
+    const same = page.locator(`[data-action="discard-tile"][data-id="${id}"]`);
+    if(size.width<900) { await same.tap(); await same.tap(); } else { await same.click(); await same.click(); }
     await page.getByRole('button', { name: '내 손패 보기', exact: true }).waitFor();
     assert.equal(await page.locator('.hand .tile').count(), 0, 'next human hand must stay hidden');
     await page.getByRole('button', { name: '내 손패 보기', exact: true }).click();
@@ -99,6 +102,29 @@ try {
         await page
           .getByRole('button', { name: '2회 쯔모 분석 완료', exact: true })
           .waitFor({ timeout: 30000 });
+        if (size.name === 'galaxy-portrait') {
+          // Complete a real seeded exercise via production app events, evaluating
+          // only rendered own/river tiles. This never accesses its hidden wall.
+          for (let step = 0; step < 100 && !(await page.locator('.efficiency-result').count()); step++) {
+            if (await page.locator('[data-action="eff-next"]').count())
+              await page.locator('[data-action="eff-next"]').click();
+            const choice = await page.evaluate(async () => {
+              const { rankDiscards } = await import('./js/core/shanten.js');
+              const { counts } = await import('./js/core/tiles.js');
+              const hand = [...document.querySelectorAll('[data-action="eff-answer"]')].map(e => +e.dataset.id);
+              const river = [...document.querySelectorAll('.training-river .tile')].map(e => +e.dataset.id);
+              return rankDiscards(hand, 0, counts([...hand, ...river]))[0].t;
+            });
+            await page.locator('[data-action="eff-answer"][data-t="' + choice + '"]').first().tap();
+          }
+          await page.getByRole('heading', { name: '텐파이 달성!' }).waitFor();
+          assert.equal(await page.locator('.efficiency-result .hand .tile').count(), 13);
+          assert.equal(await page.locator('[data-action="eff-next"]').count(), 0);
+          await page.getByRole('button', { name: '연습 메뉴로', exact: true }).click();
+          await page.getByRole('heading', { name: '연습 메뉴' }).waitFor();
+          await page.getByRole('button', { name: '새 패효율 연습', exact: true }).click();
+          assert.equal(await page.locator('[data-action="eff-answer"]').count(), 14);
+        }
       } else if (tab === 'defense') {
         await page.locator('[data-action="def-answer"]').first().click();
         await page.locator('.feedback').waitFor();
