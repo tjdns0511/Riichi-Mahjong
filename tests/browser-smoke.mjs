@@ -10,6 +10,7 @@ import { chromium } from 'playwright';
 import { runLayoutChecks } from './browser-layout.mjs';
 import { runHandGeometryChecks } from './browser-hand-geometry.mjs';
 import { checkEfficiencyExport } from './browser-efficiency-export.mjs';
+import { replayEfficiencyReport } from './efficiency-report-replay.mjs';
 
 const root = resolve(import.meta.dirname, '..'),
   out = resolve(root, 'test-results');
@@ -105,7 +106,11 @@ try {
       if (tab === 'efficiency') {
         // Exporting before the first choice is safe and shows an empty history.
         await page.locator('[data-action="eff-export"]').click();
-        assert.match(await page.locator('#eff-report').inputValue(), /총 타패 횟수: 0회/);
+        const openingReport = replayEfficiencyReport(await page.locator('#eff-report').inputValue());
+        assert.equal(openingReport.snapshots.length, 0);
+        assert.equal(openingReport.initialCodes.length, 13);
+        assert.equal(openingReport.hand.length, 14);
+        assert.ok(openingReport.pending);
         await page.locator('[data-action="eff-answer"]').first().click();
         assert.equal(await page.locator('#eff-report').count(), 0, 'discard must clear stale preview');
         await page.locator('.feedback').waitFor();

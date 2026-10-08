@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
+import { handCodes, replayEfficiencyReport } from './efficiency-report-replay.mjs';
 
 /** Exercise production event handlers, clipboard and real browser downloads.
  * The caller supplies a played exercise; no hidden wall or app global is read. */
@@ -15,13 +16,18 @@ export async function checkEfficiencyExport(page, out, tag, ended = false) {
   const preview = page.getByRole('textbox', { name: '패효율 분석 보고서', exact: true });
   const report = await preview.inputValue();
   assert.ok(await preview.evaluate(e => e.readOnly));
-  assert.match(report, /^# 패효율 연습 기록\n/);
-  assert.match(report, /### 1순/);
-  assert.match(report, /최적 타패 \(동률 모두\)/);
+  const replayed = replayEfficiencyReport(report);
+  assert.deepEqual(handCodes(replayed.hand), handCodes(before.hand.map(Number)));
+  assert.ok(before.score.includes(`${replayed.points} / ${replayed.maxPoints}점`));
+  assert.match(report, /^1 \|/m);
+  assert.match(report, /샨텐\(선택\/최적\)/);
   if (ended) {
-    assert.match(report, /상태: 텐파이 달성 · 종료/);
-    assert.match(report, /## 최종 구조적 대기/);
-  } else assert.match(report, /총 타패 횟수: 1회/);
+    assert.equal(replayed.state, '텐파이');
+    assert.match(report, /^- 대기\(구조적·미확인\):/m);
+  } else {
+    assert.equal(replayed.snapshots.length, 1);
+    assert.deepEqual(handCodes(replayed.river), handCodes(before.river.map(Number)));
+  }
   const bounds = await page.evaluate(() => {
     const p = document.querySelector('.efficiency-export').getBoundingClientRect();
     const hand = document.querySelector('.practice-hand, .efficiency-result').getBoundingClientRect();
@@ -55,5 +61,5 @@ export async function checkEfficiencyExport(page, out, tag, ended = false) {
   await page.screenshot({ path: resolve(out, `${tag}-efficiency-export.png`), fullPage: true });
   await page.getByRole('button', { name: '닫기', exact: true }).click();
   assert.equal(await preview.count(), 0);
-  console.log(`${tag}: efficiency preview, UTF-8 TXT/Markdown, clipboard/fallback, state preservation passed`);
+  console.log(`${tag}: v2 report replay, UTF-8 TXT/Markdown, clipboard/fallback, state preservation passed`);
 }

@@ -402,7 +402,7 @@ root.addEventListener('click', async (event) => {
     } else if (action === 'eff-export') {
       const at = new Date().toISOString();
       efficiencyExport = {
-        text: formatEfficiencyReport(efficiency, at),
+        text: formatEfficiencyReport(efficiency),
         name: `riichi-efficiency-${at.replace(/[:.]/g, '-')}`,
       };
       render();

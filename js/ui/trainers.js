@@ -63,7 +63,7 @@ function efficiencyExportView(text) {
   <p class="muted">현재까지의 기록을 읽기 쉬운 보고서로 정리했습니다. 복사하거나 파일로 저장해 외부에서 분석할 수 있습니다.</p>
   <label class="field"><span>패효율 분석 보고서</span><textarea id="eff-report" readonly rows="14" spellcheck="false">${esc(text)}</textarea></label>
   <div class="action-row">${button('보고서 복사','eff-export-copy','','primary')}${button('텍스트 저장 (.txt)','eff-export-txt')}${button('Markdown 저장 (.md)','eff-export-md')}${button('닫기','eff-export-close')}</div>
-  <p class="micro">두 파일은 같은 내용의 UTF-8 문서입니다. 타패별 손패·유효패·최적 후보·점수를 포함합니다.</p></section>`;
+  <p class="micro">두 파일은 같은 내용의 UTF-8 문서입니다. 시작 13장과 순별 쯔모·타패·샨텐·유효패·최적 후보를 담습니다.</p></section>`;
 }
 /** Expandable comparisons retain all co-optimal choices and public counts. */
 function efficiencyHistory(e) {
