@@ -1,0 +1,169 @@
+{
+  "baselineCommit": "93be9279825656151d8697ca695f119c5010f88d",
+  "baselineRun": 37720374734,
+  "testedFixCommit": "837cf4e51b70da8e2b43513ec6c310bac0e03934",
+  "fixRun": 37720856916,
+  "browser": "Playwright Chromium, viewport height 900 CSS px, mobile emulation where width < 900",
+  "measurements": [
+    {
+      "viewport": 320,
+      "before": {
+        "width": 17.34375,
+        "height": 50,
+        "ratio": 2.8828828828828827,
+        "rows": 2
+      },
+      "after": {
+        "width": 16.84375,
+        "height": 23.25,
+        "ratio": 1.3803339517625233,
+        "rows": 1,
+        "overflow": false
+      }
+    },
+    {
+      "viewport": 360,
+      "before": {
+        "width": 20.203125,
+        "height": 50,
+        "ratio": 2.474864655839134,
+        "rows": 2
+      },
+      "after": {
+        "width": 19.703125,
+        "height": 27.203125,
+        "ratio": 1.380650277557494,
+        "rows": 1,
+        "overflow": false
+      }
+    },
+    {
+      "viewport": 390,
+      "before": {
+        "width": 21.34375,
+        "height": 50,
+        "ratio": 2.342606149341142,
+        "rows": 1
+      },
+      "after": {
+        "width": 21.28125,
+        "height": 29.359375,
+        "ratio": 1.3795888399412628,
+        "rows": 1,
+        "overflow": false
+      }
+    },
+    {
+      "viewport": 430,
+      "before": {
+        "width": 24.203125,
+        "height": 50,
+        "ratio": 2.065848934796643,
+        "rows": 1
+      },
+      "after": {
+        "width": 24.140625,
+        "height": 33.3125,
+        "ratio": 1.3799352750809062,
+        "rows": 1,
+        "overflow": false
+      }
+    },
+    {
+      "viewport": 700,
+      "before": {
+        "width": 43.5,
+        "height": 50,
+        "ratio": 1.1494252873563218,
+        "rows": 1
+      },
+      "after": {
+        "width": 43.421875,
+        "height": 59.921875,
+        "ratio": 1.3799928031666067,
+        "rows": 1,
+        "overflow": false
+      }
+    },
+    {
+      "viewport": 701,
+      "before": {
+        "width": 28.03125,
+        "height": 38.6875,
+        "ratio": 1.3801560758082496,
+        "rows": 1
+      },
+      "after": {
+        "width": 27.28125,
+        "height": 37.640625,
+        "ratio": 1.379725085910653,
+        "rows": 1,
+        "overflow": false
+      }
+    },
+    {
+      "viewport": 768,
+      "before": {
+        "width": 30.71875,
+        "height": 42.390625,
+        "ratio": 1.3799593082400814,
+        "rows": 1
+      },
+      "after": {
+        "width": 32.0625,
+        "height": 44.25,
+        "ratio": 1.3801169590643274,
+        "rows": 1,
+        "overflow": false
+      }
+    },
+    {
+      "viewport": 1024,
+      "before": {
+        "width": 40.953125,
+        "height": 56.515625,
+        "ratio": 1.3800076306753148,
+        "rows": 1
+      },
+      "after": {
+        "width": 50.34375,
+        "height": 69.484375,
+        "ratio": 1.3801986343885786,
+        "rows": 1,
+        "overflow": false
+      }
+    },
+    {
+      "viewport": 1100,
+      "before": {
+        "width": 44,
+        "height": 60.71875,
+        "ratio": 1.3799715909090908,
+        "rows": 1
+      },
+      "after": {
+        "width": 53,
+        "height": 73.125,
+        "ratio": 1.3797169811320755,
+        "rows": 1,
+        "overflow": false
+      }
+    },
+    {
+      "viewport": 1440,
+      "before": {
+        "width": 53,
+        "height": 73.125,
+        "ratio": 1.3797169811320755,
+        "rows": 1
+      },
+      "after": {
+        "width": 53,
+        "height": 73.125,
+        "ratio": 1.3797169811320755,
+        "rows": 1,
+        "overflow": false
+      }
+    }
+  ]
+}
