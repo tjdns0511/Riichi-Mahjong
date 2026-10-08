@@ -8,6 +8,7 @@ import { readFile, mkdir } from 'node:fs/promises';
 import { resolve, extname } from 'node:path';
 import { chromium } from 'playwright';
 import { runLayoutChecks } from './browser-layout.mjs';
+import { runHandGeometryChecks } from './browser-hand-geometry.mjs';
 
 const root = resolve(import.meta.dirname, '..'),
   out = resolve(root, 'test-results');
@@ -170,6 +171,7 @@ try {
     await context.close();
   }
   await runLayoutChecks(browser, out);
+  await runHandGeometryChecks(browser, out);
 } finally {
   await browser.close();
   server.close();
