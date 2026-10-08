@@ -7,6 +7,7 @@ import { createServer } from 'node:http';
 import { readFile, mkdir } from 'node:fs/promises';
 import { resolve, extname } from 'node:path';
 import { chromium } from 'playwright';
+import { runLayoutChecks } from './browser-layout.mjs';
 
 const root = resolve(import.meta.dirname, '..'),
   out = resolve(root, 'test-results');
@@ -54,6 +55,7 @@ try {
       hasTouch: size.width < 900,
       serviceWorkers: 'block',
     });
+    await context.addInitScript(() => { Date.now = () => 1791410000000; });
     const page = await context.newPage(),
       errors = [];
     page.on('pageerror', (e) => errors.push(e.message));
@@ -137,6 +139,7 @@ try {
     );
     await context.close();
   }
+  await runLayoutChecks(browser, out);
 } finally {
   await browser.close();
   server.close();
