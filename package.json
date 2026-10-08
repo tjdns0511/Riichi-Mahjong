@@ -1,6 +1,6 @@
 {
   "name": "riichi-mahjong",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "private": true,
   "type": "module",
   "description": "Dependency-free Riichi Mahjong and learning suite",

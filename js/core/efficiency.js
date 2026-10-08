@@ -9,7 +9,7 @@ export function newEfficiency(seed = Date.now()) {
     wall = shuffled(seed + i); hand = wall.splice(0, 14);
     if (shanten(counts(hand)) <= 3) break;
   }
-  return { hand: sorted(hand), wall, river: [], rows: null, choice: null, show: false,
+  return { hand: sorted(hand), drawn: hand.at(-1), wall, river: [], rows: null, choice: null, show: false,
     points: 0, maxPoints: 0, turn: 1, twoStep: false, busy: false,
     ended: false, history: [], final: null, revision: 0 };
 }
@@ -30,10 +30,11 @@ export function answerEfficiency(e, t) {
   const reason = optimal.includes(t) ? '최소 샨텐과 최대 유효패를 유지한 최적 선택입니다.'
     : loss.shanten ? optimal.map(label).join('·') + '보다 ' + loss.shanten + '샨텐 느립니다. 다른 샨텐의 유효패 수를 직접 비교하지 않습니다.'
     : optimal.map(label).join('·') + '보다 미확인 유효패가 ' + loss.ukeire + '장 적습니다.';
-  e.history.push({ turn: e.turn, hand, known, selected: t, chosen, optimal, best, rows,
+  e.history.push({ turn: e.turn, hand, drawn: e.drawn, known, selected: t, chosen, optimal, best, rows,
     loss, reason, earned, maximum });
   const id = e.hand.find(id => typeOf(id) === t);
   e.hand = e.hand.filter(x => x !== id); e.river.push(id);
+  e.drawn = null;
   e.rows = rows; e.choice = t; e.show = true; e.points += earned; e.maxPoints += maximum;
   e.twoStep = false; e.busy = false; e.revision++;
   if (shanten(counts(e.hand)) === 0) {
@@ -46,7 +47,8 @@ export function answerEfficiency(e, t) {
 /** Drawing is separate, impossible after completion, and idempotent on repeat. */
 export function nextEfficiency(e) {
   if (e.ended || e.choice === null || !e.wall.length || e.hand.length !== 13) return false;
-  e.hand = sorted([...e.hand, e.wall.shift()]); e.choice = null; e.rows = null;
+  e.drawn = e.wall.shift();
+  e.hand = sorted([...e.hand, e.drawn]); e.choice = null; e.rows = null;
   e.show = false; e.turn++; e.twoStep = false; e.busy = false; e.revision++;
   return true;
 }

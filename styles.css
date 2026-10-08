@@ -1148,6 +1148,40 @@ body.no-labels .tile-label {
   justify-content: center;
   --hand-tile-w: clamp(21px, 4vw, 53px);
 }
+/* Efficiency hands have their own sizing contract. Do not apply .tiles-hand:
+ * that component intentionally wraps larger touch targets on the game table.
+ * cqw uses this row's content box, already excluding panel/sidebar padding.
+ * Reserve 13 gaps and one drawn-tile gap even in the stable 13-tile state. */
+.efficiency-hand {
+  container-type: inline-size;
+  --eff-gap: 4px;
+  --eff-drawn-gap: 10px;
+  --eff-tile-w: min(53px, calc((100cqw - 13 * var(--eff-gap) - var(--eff-drawn-gap)) / 14));
+  flex-wrap: nowrap;
+  gap: var(--eff-gap);
+  justify-content: center;
+}
+.efficiency-hand > .tile {
+  --tile-w: var(--eff-tile-w);
+  --tile-h: calc(var(--tile-w) * 1.38);
+  width: var(--tile-w);
+  height: var(--tile-h);
+  flex: 0 0 var(--tile-w);
+  min-width: 0;
+}
+.efficiency-hand > .tile.drawn {
+  margin-left: var(--eff-drawn-gap);
+}
+.efficiency-hand .tile-fallback {
+  font-size: calc(var(--eff-tile-w) * 1.12);
+}
+.efficiency-hand .tile img {
+  object-fit: contain;
+}
+.efficiency-history .efficiency-hand {
+  padding-top: 14px;
+  padding-bottom: 0;
+}
 .feedback {
   display: flex;
   flex-direction: column;
@@ -2108,6 +2142,19 @@ details > summary {
     padding-top: 15px;
     gap: 3px;
   }
+  .efficiency-hand {
+    --eff-gap: 3px;
+    --eff-drawn-gap: 3px;
+  }
+  .efficiency-hand .tile {
+    border-radius: 3px;
+  }
+  .efficiency-hand .tile-label {
+    font-size: 7px;
+    bottom: 0;
+    right: 0;
+    padding: 1px;
+  }
   .practice-hand .panel-heading {
     padding: 0 5px;
   }
@@ -2425,7 +2472,6 @@ details > summary {
 .efficiency-history details { padding: 14px 0; border-top: 1px solid var(--line); }
 .efficiency-history summary { cursor: pointer; padding: 8px 0; line-height: 1.7; }
 .efficiency-history p { font-size: 13px; line-height: 1.7; }
-.history-hand { display: flex; flex-wrap: wrap; gap: 3px; padding-top: 14px; }
 .hand-footer { flex-wrap: wrap; }
 .tiles-hand { flex-wrap: wrap; }
 /* Compact table: four separate zones below the information row.

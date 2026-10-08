@@ -25,6 +25,16 @@ import {
 } from './common.js';
 
 export { newEfficiency, answerEfficiency, nextEfficiency } from '../core/efficiency.js';
+/** Keep the physical drawn tile at the right without mutating the sorted model.
+ * One scoped hand component is used for active, final and historical hands. */
+function efficiencyHand(hand, drawn = null, options = {}) {
+ const hasDraw = hand.includes(drawn);
+ const ordered = hasDraw ? [...hand.filter(id => id !== drawn), drawn] : hand;
+ return `<div class="hand efficiency-hand">${ordered.map(id => tile(id, {
+   ...options, classes: hasDraw && id === drawn ? 'drawn' : '',
+   attrs: hasDraw && id === drawn ? 'aria-description="쯔모패"' : '',
+ })).join('')}</div>`;
+}
 /** Final 13 tiles and historical 14-tile decisions are intentionally separate. */
 export function efficiencyView(e) {
  const rows=e.rows??rankDiscards(e.hand,0,counts([...e.hand,...e.river]));
@@ -32,14 +42,14 @@ export function efficiencyView(e) {
  const progress=`<div class="practice-stat"><b>${e.maxPoints?ratio:'—'}<small>%</small></b><span>${e.points} / ${e.maxPoints}점</span></div>`;
  const scoring='<p class="micro">점수 = 최소 샨텐을 유지한 선택의 유효패 수 합계. 분모 = 각 순 최적 유효패 수의 합계(0장이면 1점). 샨텐이 더 높은 선택은 0점입니다. 매수는 미확인 패이며 패산 잔존 매수가 아닙니다.</p>';
  if(e.ended)return `<div class="practice-top"><div><span class="eyebrow">TENPAI · COMPLETE</span><h1>텐파이 달성!</h1><p class="muted">${e.history.length}회 타패 · 연습이 종료되었습니다.</p></div>${progress}</div>
- <section class="panel efficiency-result"><h2>최종 손패</h2><div class="tiles-hand hand">${tiles(e.hand)}</div>
+ <section class="panel efficiency-result"><h2>최종 손패</h2>${efficiencyHand(e.hand)}
  <h3>최종 대기 · ${e.final.waits.length}종 / 미확인 ${e.final.total}장</h3><div class="wait-details">${e.final.waits.map(w=>`<div class="wait-card ${w.left?'':'exhausted'}">${tile(w.t*4+1)}<b>${label(w.t)} · ${w.left}장</b><span>${w.shapes.join('·')}</span></div>`).join('')}</div>
  ${scoring}<p>누적 ${e.points}점 / 최대 ${e.maxPoints}점 · 달성 비율 ${ratio}%</p><div class="action-row">${button('다시 연습하기','eff-new','','primary')}${button('연습 메뉴로','eff-menu')}</div></section>
  <section class="panel"><h2>개선할 수 있었던 선택</h2>${e.history.some(r=>!r.optimal.includes(r.selected))?e.history.filter(r=>!r.optimal.includes(r.selected)).map(r=>`<p>${r.turn}순 ${label(r.selected)}: ${esc(r.reason)}</p>`).join(''):'<p>모든 타패가 해당 시점의 최적 선택입니다.</p>'}</section>${efficiencyHistory(e)}`;
  const chosen=record&&e.choice!==null?record.chosen:null;
  return `<div class="practice-top"><div><span class="eyebrow">TILE EFFICIENCY</span><h1>어떤 패를 버릴까요?</h1><p class="muted">타패 후 텐파이가 되면 즉시 결과를 확인합니다.</p></div>${progress}</div>
  <section class="panel practice-hand"><div class="panel-heading"><span>${e.turn}순째 ${pill(shantenText(shanten(counts(e.hand))))}</span>${button('새 손패','eff-new')}</div>
- <div class="tiles-hand hand">${e.hand.map(id=>tile(id,{action:'eff-answer',disabled:e.choice!==null})).join('')}</div>
+ ${efficiencyHand(e.hand,e.drawn,{action:'eff-answer',disabled:e.choice!==null})}
  <div class="hand-footer"><span class="micro">패를 누르면 타패하고 정답과 비교합니다.</span>${button(e.show?'분석 숨기기':'분석 보기','eff-reveal')}</div>
  ${chosen?`<div class="feedback ${record.optimal.includes(e.choice)?'good':''}"><b>${esc(record.reason)}</b><span>${label(chosen.t)} → ${shantenText(chosen.shanten)} · 유효패 ${chosen.total}장 · ${record.earned}/${record.maximum}점</span>${e.wall.length?button('다음 쯔모','eff-next','','primary'):'<span>연습 패산이 소진되었습니다. 새 손패를 시작하세요.</span>'}</div>`:''}
  ${e.river.length?`<div class="training-river" data-public><span>내 버림패</span>${tiles(e.river,{small:true})}</div>`:''}</section>
@@ -47,7 +57,7 @@ export function efficiencyView(e) {
 }
 /** Expandable comparisons retain all co-optimal choices and public counts. */
 function efficiencyHistory(e) {
- return `<section class="panel efficiency-history"><h2>타패별 분석</h2>${e.history.map(r=>`<details><summary>${r.turn}순 · ${label(r.selected)} · ${shantenText(r.chosen.shanten)} · ${r.earned}/${r.maximum}점</summary><div class="tiles-hand history-hand">${tiles(r.hand,{small:true})}</div><p>실제 ${label(r.selected)} / 최적 ${r.optimal.map(label).join('·')}</p><p>${esc(r.reason)}</p><p>샨텐 손실 ${r.loss.shanten} · 유효패 손실 ${r.loss.ukeire===null?'샨텐이 달라 직접 비교하지 않음':r.loss.ukeire+'장'}</p>${analysisTable(r.rows,r.selected)}</details>`).join('')}</section>`;
+ return `<section class="panel efficiency-history"><h2>타패별 분석</h2>${e.history.map(r=>`<details><summary>${r.turn}순 · ${label(r.selected)} · ${shantenText(r.chosen.shanten)} · ${r.earned}/${r.maximum}점</summary>${efficiencyHand(r.hand,r.drawn,{small:true})}<p>실제 ${label(r.selected)} / 최적 ${r.optimal.map(label).join('·')}</p><p>${esc(r.reason)}</p><p>샨텐 손실 ${r.loss.shanten} · 유효패 손실 ${r.loss.ukeire===null?'샨텐이 달라 직접 비교하지 않음':r.loss.ukeire+'장'}</p>${analysisTable(r.rows,r.selected)}</details>`).join('')}</section>`;
 }
 /** Construct visible scenarios from distinct physical IDs. Include a matching
  * type in the quiz hand where possible so genbutsu identification is trainable. */
