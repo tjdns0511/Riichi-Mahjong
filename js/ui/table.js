@@ -1,3 +1,4 @@
+import { evaluateDiscards } from '../core/ai.js';
 import { selectionAnalysis, furitenPanel } from './furiten.js';
 import { typeOf, WINDS, sorted, label } from '../core/tiles.js';
 import { roundName, indicators, seatWind, furiten, visibleCounts } from '../core/game.js';
@@ -109,6 +110,12 @@ export function gameAnalysis(match, ui) {
     d = shantenDetails(counts(p.hand), p.melds.length),
     known = visibleCounts(s, ui.viewer),
     selected = ui.selected === null ? null : typeOf(ui.selected);
-  return `<section class="panel"><div class="panel-heading"><h2>손패 분석</h2>${pill(shantenText(d.min), d.min <= 0 ? 'green' : '')}</div><div class="shanten-mini"><span>일반형 <b>${shantenText(d.standard)}</b></span><span>치또이츠 <b>${Number.isFinite(d.chiitoi) ? shantenText(d.chiitoi) : '—'}</b></span><span>국사무쌍 <b>${Number.isFinite(d.kokushi) ? shantenText(d.kokushi) : '—'}</b></span></div>${selected !== null ? `<div class="selected-info">${tile(ui.selected, { aka: s.config.aka })}<div><b>${label(selected)}</b><span>알려진 패 ${known[selected]}장</span><span>보이지 않는 패 ${Math.max(0, 4 - known[selected])}장</span></div></div>` : '<p class="muted">패를 선택하면 버림패와 부름패의 같은 패를 찾아 줍니다.</p>'}<p class="micro">보이지 않는 패에는 타가 손패와 왕패도 포함됩니다.</p>${button(ui.hints ? '추천 숨기기' : '추천 타패 보기', 'game-hints', '', 'full')}${ui.hints && p.hand.length % 3 === 2 ? analysisTable(rankDiscards(p.hand, p.melds.length, known, p.forbidden).slice(0, 4)) : ''}</section>
+  return `<section class="panel"><div class="panel-heading"><h2>손패 분석</h2>${pill(shantenText(d.min), d.min <= 0 ? 'green' : '')}</div><div class="shanten-mini"><span>일반형 <b>${shantenText(d.standard)}</b></span><span>치또이츠 <b>${Number.isFinite(d.chiitoi) ? shantenText(d.chiitoi) : '—'}</b></span><span>국사무쌍 <b>${Number.isFinite(d.kokushi) ? shantenText(d.kokushi) : '—'}</b></span></div>${selected !== null ? `<div class="selected-info">${tile(ui.selected, { aka: s.config.aka })}<div><b>${label(selected)}</b><span>알려진 패 ${known[selected]}장</span><span>보이지 않는 패 ${Math.max(0, 4 - known[selected])}장</span></div></div>` : '<p class="muted">패를 선택하면 버림패와 부름패의 같은 패를 찾아 줍니다.</p>'}<p class="micro">보이지 않는 패에는 타가 손패와 왕패도 포함됩니다.</p>${button(ui.hints ? '추천 숨기기' : '추천 타패 보기', 'game-hints', '', 'full')}${ui.hints && p.hand.length % 3 === 2 ? analysisTable(rankDiscards(p.hand, p.melds.length, known, p.forbidden).slice(0, 4)) + strategyPanel(evaluateDiscards(s, ui.viewer, { player: { ...p, level: 'hard' }, known, riichiIds: match.riichiDiscards(ui.viewer) })) : ''}</section>
   <section class="panel legend-panel"><h2>탁자 읽기</h2><p><span class="legend-mark tedashi-mark"></span>테다시 · 손패에서 버림</p><p><span class="legend-mark tsumogiri-mark"></span>쯔모기리 · 뽑은 패를 바로 버림</p><p><span class="legend-mark riichi-mark"></span>리치 선언패</p><p class="micro">울린 버림패는 옅게 남습니다. 후리텐 판정에는 계속 포함됩니다.</p></section>`;
+}
+
+/** Surface strategic components only when assistance was explicitly opened. */
+function strategyPanel(rows) {
+ if(!rows.length)return '';
+ return `<div class="strategy-analysis"><h3>고급 AI의 판단 근거</h3>${rows.slice(0,3).map(r=>`<details><summary>${label(r.t)} · ${{attack:'공격',push:'공격 유지',balanced:'견제',fold:'수비'}[r.mode]} · ${shantenText(r.shanten)}</summary><p>${r.reasons.map(esc).join('<br>')}</p><p>타점 평가 ${num(r.value)}점 · 비교 비용 ${Math.round(r.cost)} (낮을수록 우선)</p>${r.routes.length?`<p>역 경로: ${r.routes.map(x=>esc(x.name)).join('·')}</p>`:''}${r.opponents.map(p=>`<p>${esc(p.name)}: 위험 지수 ${p.risk} · ${p.reasons.map(esc).join('·')}</p>`).join('')}</details>`).join('')}<p class="micro">텐파이 타점은 미확인 대기의 점수를 가중한 비교값, 그 이전은 도라·역 경로의 근사값입니다. 본장·공탁과 미래의 우라는 제외합니다. 위험 지수와 비교 비용은 방총 확률 또는 실제 화료 기대값이 아닙니다.</p></div>`;
 }

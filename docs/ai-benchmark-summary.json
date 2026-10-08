@@ -1,0 +1,63 @@
+{
+  "matches": 40,
+  "baseline": {
+    "samples": 32,
+    "averageRank": 2.5,
+    "averagePoints": 0,
+    "rounds": 336,
+    "discards": 4733,
+    "tenpaiDiscards": 666,
+    "furitenTenpai": 9,
+    "noYakuTenpai": 4,
+    "wins": 49,
+    "dealIns": 16,
+    "calls": 69,
+    "nonImprovingCalls": 0,
+    "kans": 9,
+    "lateOrThreatenedKans": 0,
+    "winRate": 0.14583333333333334,
+    "dealInRate": 0.047619047619047616,
+    "furitenTenpaiRate": 0.013513513513513514,
+    "noYakuTenpaiRate": 0.006006006006006006
+  },
+  "candidate": {
+    "samples": 32,
+    "averageRank": 2.3125,
+    "averagePoints": 2150,
+    "rounds": 354,
+    "discards": 4820,
+    "tenpaiDiscards": 897,
+    "furitenTenpai": 20,
+    "noYakuTenpai": 0,
+    "wins": 68,
+    "dealIns": 36,
+    "calls": 92,
+    "nonImprovingCalls": 0,
+    "kans": 3,
+    "lateOrThreatenedKans": 0,
+    "winRate": 0.192090395480226,
+    "dealInRate": 0.1016949152542373,
+    "furitenTenpaiRate": 0.022296544035674472,
+    "noYakuTenpaiRate": 0
+  },
+  "baselineCommit": "1f5bee656b22d9dd3efd0e1f4ef29fe827da5632",
+  "candidateEngineCommit": "741a7fd99bd96e2ed272ec982818ae825b7c95a8",
+  "seeds": [
+    104729,
+    130363,
+    155921,
+    196613,
+    262147,
+    327673,
+    393241,
+    524287
+  ],
+  "validatedRun": "https://github.com/tjdns0511/Riichi-Mahjong/actions/runs/37707182367",
+  "limitations": [
+    "32 paired seat observations use only 8 independent seeds; no statistical significance claimed.",
+    "Win and deal-in denominators are rounds experienced by each observed seat.",
+    "Furiten and no-yaku denominators count all tenpai discard decisions, including forced riichi discards.",
+    "Non-improving calls and late/threatened kans are diagnostic proxies, not proofs of unnecessary play.",
+    "Only frozen Hard opponents; no physical Android or Samsung Internet device measurements."
+  ]
+}

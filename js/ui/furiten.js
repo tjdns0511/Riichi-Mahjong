@@ -22,7 +22,7 @@ export function furitenPanel(a) {
  ${f.temporary?'<p>동순 후리텐: 다음 자신의 쯔모까지 론할 수 없습니다.</p>':''}
  ${f.riichi?'<p>리치 후 후리텐: 이 국이 끝날 때까지 론할 수 없습니다.</p>':''}
  ${f.any?`<p class="ron-blocked-list">론 불가능한 대기패: ${a.waits.map(w=>label(w.t)).join('·')}</p>`:''}
- <div class="wait-details">${a.waits.map(w=>`<div class="wait-card ${w.ronBlocked?'ron-blocked':''} ${w.left?'':'exhausted'}" data-wait-type="${w.t}">${tile(w.t*4+1,{small:true})}<b>${label(w.t)} · 미확인 ${w.left}장</b><span>${w.shapes.join('·')}</span><span>${w.ronBlocked?'후리텐: 론 불가':w.ronAllowed?`론 가능 (${w.ronScore.yakuman ? '역만' : w.ronScore.han+'판'})`:'역 없음: 론 불가'}</span><span class="${w.tsumoAllowed?'tsumo-allowed':''}">${w.tsumoAllowed?'쯔모 화료 가능':'역 없음: 쯔모 불가'}</span>${w.left===0?'<span>미확인 패 0장</span>':''}</div>`).join('')}</div>
+ <div class="wait-details">${a.waits.map(w=>`<div class="wait-card ${w.ronBlocked?'ron-blocked':''} ${w.left?'':'exhausted'}" data-wait-type="${w.t}">${tile(w.t*4+1,{small:true})}<b>${label(w.t)} · 미확인 ${w.left}장</b><span>${w.shapes.join('·')}</span><span>${w.ronBlocked?'후리텐: 론 불가':w.ronAllowed?`론 가능 (${w.ronScore.yakuman ? '역만' : w.ronScore.han+'판'})`:'역 없음: 론 불가'}</span><span class="${w.tsumoAllowed?'tsumo-allowed':''}">${w.tsumoAllowed?(w.left?'쯔모 화료 가능':'쯔모 역 충족 · 미확인 0장'):'역 없음: 쯔모 불가'}</span>${w.left===0?'<span>미확인 패 0장</span>':''}</div>`).join('')}</div>
  <p class="micro">구조적 완성 대기 ${a.waits.length}종 · 미확인 ${a.total}장. 미확인 패에는 타가 손패와 왕패가 포함됩니다. 역은 현재 공개된 조건으로 검증하며 우라·잇파츠·해저·영상 등 미래의 추가 역은 가정하지 않습니다.</p>
  ${preview&&f.any?'<p class="micro">이 타패는 합법입니다. 같은 패를 다시 누르거나 타패 버튼으로 진행할 수 있습니다.</p>':''}</section>`;
 }

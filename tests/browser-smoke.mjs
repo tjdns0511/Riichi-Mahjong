@@ -87,6 +87,10 @@ try {
     await page.getByRole('button', { name: '내 손패 보기', exact: true }).waitFor();
     assert.equal(await page.locator('.hand .tile').count(), 0, 'next human hand must stay hidden');
     await page.getByRole('button', { name: '내 손패 보기', exact: true }).click();
+    await page.getByRole('button', { name: '추천 타패 보기', exact: true }).click();
+    assert.equal(await page.locator('.strategy-analysis').count(), 1, 'strategy explanation missing');
+    await page.locator('.strategy-analysis summary').first().click();
+    await page.getByRole('button', { name: '추천 숨기기', exact: true }).click();
     await page.screenshot({ path: resolve(out, `${size.name}-table.png`), fullPage: true });
     for (const tab of ['efficiency', 'defense', 'alllast', 'calculator', 'replay']) {
       await page.locator(`.nav-button[data-tab="${tab}"]`).click();
